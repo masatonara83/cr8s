@@ -4,7 +4,7 @@ use rocket::serde::json::{serde_json::json, Json, Value};
 
 use crate::models::{NewRustacean, Rustacean};
 use crate::repositories::RustaceanRepository;
-use crate::DbConn;
+use crate::rocket_routes::DbConn;
 
 #[rocket::get("/rustaceans")]
 pub async fn get_rustaceans(db: DbConn) -> Result<Value, Custom<Value>> {
