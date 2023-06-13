@@ -119,20 +119,20 @@ fn test_update_crate() {
         .unwrap();
     assert_eq!(response.status(), StatusCode::OK);
 
-    let a_crate: Value = response.json().unwrap();
-    assert_eq!(
-        a_crate,
-        json!( {
-            "id": a_crate["id"],
+    let response = client
+        .put(format!("{}/crates/{}", common::APP_HOST, a_crate["id"]))
+        .json(&json!( {
             "rustacean_id": rustacean["id"],
             "code" : "fooz2",
             "name": "Fooz2 bar crate",
             "version": "0.2",
-            "description" : "Fooz2 crate description",
-            "created_at" : a_crate["created_at"]
+            "description" : "Fooz2 crate description"
         }
-        )
-    );
+        ))
+        .send()
+        .unwrap();
+    assert_eq!(response.status(), StatusCode::OK);
+
     common::delete_test_crate(&client, a_crate);
     common::delete_test_rustacean(&client, rustacean);
 }
