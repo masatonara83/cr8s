@@ -1,4 +1,4 @@
-use std::{fmt::format, process::Command};
+use std::process::Command;
 
 use reqwest::{
     blocking::{Client, ClientBuilder},
@@ -6,8 +6,6 @@ use reqwest::{
     StatusCode,
 };
 use serde_json::{json, Value};
-
-use crate::common;
 
 pub static APP_HOST: &'static str = "http://127.0.0.1:8000";
 
