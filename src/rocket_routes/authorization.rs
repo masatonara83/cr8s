@@ -27,7 +27,7 @@ pub async fn login(
         .map_err(|_| Custom(Status::Unauthorized, json!("Wrong credentials")))?;
 
     cache
-        .set_ex::<_, _, ()>(format!("session/{}", session_id), user.id, 3 * 60 * 60)
+        .set_ex::<_, _, ()>(format!("sessions/{}", session_id), user.id, 3 * 60 * 60)
         .await
         .map(|_| json!({ "token": session_id }))
         .map_err(|e| server_error(e.into()))
