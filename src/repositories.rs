@@ -1,3 +1,4 @@
+use diesel::dsl::{now, IntervalDsl};
 use diesel::prelude::*;
 
 use crate::models::{
@@ -49,7 +50,13 @@ impl CrateRepository {
     }
 
     pub fn find_multiple(conn: &mut PgConnection, limit: i64) -> QueryResult<Vec<Crate>> {
-        crates::table.limit(limit).load(conn)
+        crates::table.limit(limit).load::<Crate>(conn)
+    }
+
+    pub fn find_since(conn: &mut PgConnection, hours_since: i32) -> QueryResult<Vec<Crate>> {
+        crates::table
+            .filter(crates::created_at.ge(now - hours_since.second()))
+            .load::<Crate>(conn)
     }
 
     pub fn create(conn: &mut PgConnection, new_crate: NewCrate) -> QueryResult<Crate> {

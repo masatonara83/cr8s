@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" class="no-js">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive HTML5 Page Layout Template</title>
+  <style></style>
+</head>
+
+<body>
+  <header>
+    <h1>Cr8s Daily digest</h1>
+  </header>
+  <section>
+    <strong>Please find below a list with the crates that were created the past 24hours.</strong>
+  </section>
+  <section id="pageContent">
+    <main role="main">
+      {% for crate in crates %}
+      <article>
+        <h2>{{ crate.name }} - <code>{{ crate.code }} {{ crate.version }}</code></h2>
+        <p>{{ crate.description }}</p>
+        <small>{{ crate.created_at }}</small>
+      </article>
+      {% endfor %}
+    </main>
+  </section>
+  <footer>
+    <p>&copy; {{ year }} Generated and sent by cr8s rust app</p>
+  </footer>
+
+
+</body>
+
+</html>
