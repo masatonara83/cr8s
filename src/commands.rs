@@ -1,10 +1,9 @@
-use diesel::{Connection, PgConnection};
+use crate::auth;
+use crate::models::{NewUser, RoleCode};
+use crate::repositories::{RoleRepository, UserRepository};
 
-use crate::{
-    auth,
-    models::NewUser,
-    repositories::{RoleRepository, UserRepository},
-};
+use diesel::{Connection, PgConnection};
+use std::str::FromStr;
 
 fn load_db_connection() -> PgConnection {
     let database_url = std::env::var("DATABASE_URL").expect("Cannot load DB url from env");
@@ -19,6 +18,11 @@ pub fn create_user(username: String, password: String, role_codes: Vec<String>) 
         username,
         password: password_hash,
     };
+    let role_codes = role_codes
+        .iter()
+        .map(|v| RoleCode::from_str(&v).unwrap())
+        .collect();
+
     let user = UserRepository::create(&mut c, new_user, role_codes).unwrap();
     println!("User created {:?}", user);
     let roles = RoleRepository::find_by_user(&mut c, &user).unwrap();

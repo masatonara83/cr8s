@@ -5,7 +5,7 @@ use rocket::serde::json::{serde_json::json, Json, Value};
 
 use crate::models::{NewRustacean, Rustacean, User};
 use crate::repositories::RustaceanRepository;
-use crate::rocket_routes::{not_found_error, server_error, DbConn};
+use crate::rocket_routes::{not_found_error, server_error, DbConn, EditUser};
 
 #[rocket::get("/rustaceans")]
 pub async fn get_rustaceans(db: DbConn, _user: User) -> Result<Value, Custom<Value>> {
@@ -34,7 +34,7 @@ pub async fn view_rustaceans(id: i32, db: DbConn, _user: User) -> Result<Value, 
 pub async fn create_rustacean(
     new_rustacean: Json<NewRustacean>,
     db: DbConn,
-    _user: User,
+    _user: EditUser,
 ) -> Result<Custom<Value>, Custom<Value>> {
     db.run(move |c| {
         RustaceanRepository::create(c, new_rustacean.into_inner())
@@ -49,7 +49,7 @@ pub async fn update_rustacean(
     id: i32,
     rustacean: Json<Rustacean>,
     db: DbConn,
-    _user: User,
+    _user: EditUser,
 ) -> Result<Value, Custom<Value>> {
     db.run(move |c| {
         RustaceanRepository::update(c, id, rustacean.into_inner())
@@ -66,7 +66,7 @@ pub async fn update_rustacean(
 pub async fn delete_rustaceans(
     id: i32,
     db: DbConn,
-    _user: User,
+    _user: EditUser,
 ) -> Result<NoContent, Custom<Value>> {
     db.run(move |c| {
         RustaceanRepository::delete(c, id)

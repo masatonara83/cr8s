@@ -1,7 +1,8 @@
 use diesel::prelude::*;
 
 use crate::models::{
-    Crate, NewCrate, NewRole, NewRustacean, NewUser, NewUserRole, Role, Rustacean, User, UserRole,
+    Crate, NewCrate, NewRole, NewRustacean, NewUser, NewUserRole, Role, RoleCode, Rustacean, User,
+    UserRole,
 };
 use crate::schema::{crates, roles, rustaceans, users, users_roles};
 
@@ -100,7 +101,7 @@ impl UserRepository {
     pub fn create(
         conn: &mut PgConnection,
         new_user: NewUser,
-        role_codes: Vec<String>,
+        role_codes: Vec<RoleCode>,
     ) -> QueryResult<User> {
         let user = diesel::insert_into(users::table)
             .values(new_user)
@@ -108,15 +109,16 @@ impl UserRepository {
 
         for role_code in role_codes {
             let new_user_role = {
-                if let Ok(role) = RoleRepository::find_by_code(conn, role_code.to_owned()) {
+                if let Ok(role) = RoleRepository::find_by_code(conn, &role_code) {
                     NewUserRole {
                         user_id: user.id,
                         role_id: role.id,
                     }
                 } else {
+                    let name = role_code.to_string();
                     let new_role = NewRole {
-                        name: role_code.to_owned(),
-                        code: role_code.to_owned(),
+                        name,
+                        code: role_code,
                     };
                     let role = RoleRepository::create(conn, new_role)?;
                     NewUserRole {
@@ -143,7 +145,7 @@ impl UserRepository {
 pub struct RoleRepository;
 
 impl RoleRepository {
-    pub fn find_by_code(c: &mut PgConnection, code: String) -> QueryResult<Role> {
+    pub fn find_by_code(c: &mut PgConnection, code: &RoleCode) -> QueryResult<Role> {
         roles::table.filter(roles::code.eq(code)).first(c)
     }
 

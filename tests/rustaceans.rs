@@ -10,6 +10,7 @@ fn test_get_rustaceans() {
     let rustacean1 = common::create_test_rustacean(&client);
     let rustacean2 = common::create_test_rustacean(&client);
     //実行
+    let client = common::get_client_with_logged_in_viewer();
     let response = client
         .get(format!("{}/rustaceans", common::APP_HOST))
         .send()
@@ -22,6 +23,7 @@ fn test_get_rustaceans() {
     assert!(json.as_array().unwrap().contains(&rustacean2));
 
     //テストで追加した値を削除
+    let client = common::get_client_with_logged_in_admin();
     common::delete_test_rustacean(&client, rustacean1);
     common::delete_test_rustacean(&client, rustacean2);
 }
@@ -59,8 +61,9 @@ fn test_create_rustaceans() {
 #[test]
 fn test_view_rustaceans() {
     let client = common::get_client_with_logged_in_admin();
-
     let rustacean = common::create_test_rustacean(&client);
+
+    let client = common::get_client_with_logged_in_viewer();
     let response = client
         .get(format!(
             "{}/rustaceans/{}",
@@ -82,7 +85,7 @@ fn test_view_rustaceans() {
         }
         )
     );
-
+    let client = common::get_client_with_logged_in_admin();
     common::delete_test_rustacean(&client, rustacean);
 }
 

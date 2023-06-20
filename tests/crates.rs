@@ -11,6 +11,7 @@ fn test_get_crates() {
     let b_crate = common::create_test_crate(&client, &rustacean);
 
     //実行
+    let client = common::get_client_with_logged_in_viewer();
     let response = client
         .get(format!("{}/crates", common::APP_HOST))
         .send()
@@ -23,6 +24,7 @@ fn test_get_crates() {
     assert!(json.as_array().unwrap().contains(&b_crate));
 
     //テストで追加した値を削除
+    let client = common::get_client_with_logged_in_admin();
     common::delete_test_crate(&client, a_crate);
     common::delete_test_crate(&client, b_crate);
     common::delete_test_rustacean(&client, rustacean);
@@ -76,6 +78,7 @@ fn test_view_crate() {
     let rustacean = common::create_test_rustacean(&client);
     let a_crate: Value = common::create_test_crate(&client, &rustacean);
 
+    let client = common::get_client_with_logged_in_viewer();
     let response = client
         .get(format!("{}/crates/{}", common::APP_HOST, a_crate["id"]))
         .send()
@@ -95,6 +98,8 @@ fn test_view_crate() {
         }
         )
     );
+
+    let client = common::get_client_with_logged_in_admin();
     common::delete_test_crate(&client, a_crate);
     common::delete_test_rustacean(&client, rustacean);
 }

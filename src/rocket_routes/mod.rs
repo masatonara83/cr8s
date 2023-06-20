@@ -9,8 +9,8 @@ use rocket_db_pools::Connection;
 use rocket_db_pools::{deadpool_redis, Database};
 use rocket_sync_db_pools::database;
 
-use crate::models::User;
-use crate::repositories::UserRepository;
+use crate::models::{RoleCode, User};
+use crate::repositories::{RoleRepository, UserRepository};
 
 pub mod authorization;
 pub mod crates;
@@ -26,6 +26,47 @@ pub struct CacheConn(deadpool_redis::Pool);
 pub fn not_found_error(e: Box<dyn std::error::Error>) -> Custom<Value> {
     log::error!("{}", e);
     Custom(Status::NotFound, json!("Not Found Error"))
+}
+
+pub fn server_error(e: Box<dyn std::error::Error>) -> Custom<Value> {
+    log::error!("{}", e);
+    Custom(Status::InternalServerError, json!("Server Error"))
+}
+
+pub struct EditUser(User);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for EditUser {
+    type Error = ();
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let user = request
+            .guard::<User>()
+            .await
+            .expect("Cannot retrieve logged in user in request guard");
+        let db = request
+            .guard::<DbConn>()
+            .await
+            .expect("Cannot connect to postgres in request guard");
+        let editor_option = db
+            .run(|c| match RoleRepository::find_by_user(c, &user) {
+                Ok(roles) => {
+                    log::info!("Assigned roles {:?}", roles);
+                    let is_editor = roles.iter().any(|r| match r.code {
+                        RoleCode::Admin => true,
+                        RoleCode::Editor => true,
+                        _ => false,
+                    });
+                    log::info!("Is Editor is {:?}", is_editor);
+                    is_editor.then_some(EditUser(user))
+                }
+                _ => None,
+            })
+            .await;
+        match editor_option {
+            Some(editor) => Outcome::Success(editor),
+            _ => Outcome::Failure((Status::Unauthorized, ())),
+        }
+    }
 }
 
 #[rocket::async_trait]
@@ -64,9 +105,4 @@ impl<'r> FromRequest<'r> for User {
 
         Outcome::Failure((Status::Unauthorized, ()))
     }
-}
-
-pub fn server_error(e: Box<dyn std::error::Error>) -> Custom<Value> {
-    log::error!("{}", e);
-    Custom(Status::InternalServerError, json!("Server Error"))
 }
