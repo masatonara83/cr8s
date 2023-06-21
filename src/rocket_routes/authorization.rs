@@ -1,7 +1,5 @@
-
-
 use super::{not_found_error, server_error, CacheConn, DbConn};
-use crate::{auth, repositories::UserRepository};
+use crate::{auth, models::User, repositories::UserRepository};
 use diesel::result::Error::NotFound;
 use rocket::{http::Status, response::status::Custom, serde::json::Json};
 use rocket_db_pools::{deadpool_redis::redis::AsyncCommands, Connection};
@@ -31,4 +29,9 @@ pub async fn login(
         .await
         .map(|_| json!({ "token": session_id }))
         .map_err(|e| server_error(e.into()))
+}
+
+#[rocket::get("/me")]
+pub fn me(user: User) -> Value {
+    json!(user)
 }
