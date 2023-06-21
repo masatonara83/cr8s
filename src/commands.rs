@@ -1,12 +1,11 @@
 use crate::auth;
+use crate::mail::HtmlMailer;
 use crate::models::{NewUser, RoleCode};
 use crate::repositories::{CrateRepository, RoleRepository, UserRepository};
 
 use chrono::{Datelike, Utc};
 use diesel::{Connection, PgConnection};
-use lettre::message::header::ContentType;
 use lettre::transport::smtp::authentication::Credentials;
-use lettre::{SmtpTransport, Transport};
 use std::str::FromStr;
 use tera::{Context, Tera};
 
@@ -67,26 +66,22 @@ pub fn send_digest(to: String, hours_since: i32) {
         let mut context = Context::new();
         context.insert("crates", &crates);
         context.insert("year", &year);
-        let html_body = tara.render("email/digest.html", &context).unwrap();
 
-        //メール作成
-        let message = lettre::Message::builder()
-            .subject("Cr8s digest")
-            .from("Cr8s <info@cr8s.com>".parse().unwrap())
-            .to(to.parse().unwrap())
-            .header(ContentType::TEXT_HTML)
-            .body(html_body)
-            .unwrap();
         let smtp_host = std::env::var("SMTP_HOST").expect("Cannot load SMTP url from env");
         let smtp_username =
             std::env::var("SMTP_USERNAME").expect("Cannot load SMTP username from env");
         let smtp_password =
             std::env::var("SMTP_PASSWORD").expect("Cannot load SMTP password from env");
         let credentials = Credentials::new(smtp_username, smtp_password);
-        let mailer = SmtpTransport::relay(&smtp_host)
-            .unwrap()
-            .credentials(credentials)
-            .build();
-        mailer.send(&message).unwrap();
+
+        let mailer = HtmlMailer {
+            smtp_host,
+            credentials,
+            template_engine: tara,
+        };
+        let subject = "Cr8s digest".to_string();
+        mailer
+            .send(&to, &subject, "email/digest.html", &context)
+            .unwrap();
     }
 }

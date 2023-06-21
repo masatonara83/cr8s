@@ -25,9 +25,9 @@ fn test_get_crates() {
 
     //テストで追加した値を削除
     let client = common::get_client_with_logged_in_admin();
-    // common::delete_test_crate(&client, a_crate);
-    // common::delete_test_crate(&client, b_crate);
-    // common::delete_test_rustacean(&client, rustacean);
+    common::delete_test_crate(&client, a_crate);
+    common::delete_test_crate(&client, b_crate);
+    common::delete_test_rustacean(&client, rustacean);
 }
 
 #[test]
